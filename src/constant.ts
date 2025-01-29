@@ -59,5 +59,14 @@ export const Rating = {
   Multiplier: 20,
 };
 
-export const UPLOAD_URL = 'https://16.design.htmlacademy.pro';
+export const DEFAULT_CITY = {
+  name: 'Paris',
+  location: {
+    latitude: 48.85661,
+    longitude: 2.351499,
+    zoom: 13,
+  },
+};
+
 export const TIME_OUT = 5000;
+export const UPLOAD_URL = 'https://16.design.htmlacademy.pro';
