@@ -1,11 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
-import {NameSpace,
-  //  AuthorizationStatus
-} from '../../constant';
-import {UserProcess} from '../../types/state-types';
-import {fetchCheckAuth, fetchLogin, fetchSignOutAction} from '../actions/api-actions';
+import { NameSpace } from '../../constant';
+import { UserProcess } from '../../types/state-types';
+import { fetchCheckAuth, fetchLogin, fetchSignOutAction } from '../actions/api-actions';
 import { toast } from 'react-toastify';
-
+import { TUser } from '../../types/user-types';
 
 const initialState: UserProcess = {
   authorizationStatus: false,
@@ -15,50 +13,57 @@ const initialState: UserProcess = {
     isPro: false,
     email: '',
     token: '',
+  },
+};
+interface TPayload extends TUser { token?: string }
+
+// Функция для сброса состояния пользователя
+const resetUserState = (state: UserProcess) => {
+  window.localStorage.removeItem('token');
+  state.userInfo = initialState.userInfo;
+  state.authorizationStatus = false;
+};
+
+// Функция для установки пользователя и статуса авторизации
+const setUserAndAuthStatus = (state: UserProcess, payload: TPayload) => {
+  if (payload.token) {
+    window.localStorage.setItem('token', payload.token);
   }
+  state.userInfo = payload;
+  state.authorizationStatus = true;
 };
 
 export const userProcess = createSlice({
   name: NameSpace.User,
   initialState,
   reducers: {
-    dispatchDeleteLogin: ((state) => {
-      window.localStorage.removeItem('token');
-      state.userInfo = initialState.userInfo;
-      state.authorizationStatus = false;
-    })
+    dispatchDeleteLogin: (state) => {
+      resetUserState(state);
+    },
   },
   extraReducers(builder) {
     builder
       .addCase(fetchCheckAuth.fulfilled, (state, action) => {
-        state.authorizationStatus = true;
-        state.userInfo = action.payload;
+        setUserAndAuthStatus(state, action.payload);
       })
       .addCase(fetchCheckAuth.rejected, (state) => {
-        state.userInfo = initialState.userInfo;
-        state.authorizationStatus = false;
+        resetUserState(state);
       })
       .addCase(fetchLogin.fulfilled, (state, action) => {
-        const token = action.payload.token;
-        if(token){
-          window.localStorage.setItem('token', token);
-        }
-        state.userInfo = action.payload;
-        state.authorizationStatus = true;
+        setUserAndAuthStatus(state, action.payload);
       })
       .addCase(fetchLogin.rejected, (state) => {
-        state.userInfo = initialState.userInfo;
-        state.authorizationStatus = false;
+        resetUserState(state);
         toast('Пароль должен содержать минимум одну цифру и одну латинскую букву');
       })
       .addCase(fetchSignOutAction.fulfilled, (state) => {
-        state.authorizationStatus = false;
+        resetUserState(state);
       })
       .addCase(fetchSignOutAction.rejected, (state) => {
-        state.authorizationStatus = false;
+        // В данном случае, если logout не удался, мы также сбрасываем состояние пользователя
+        resetUserState(state);
       });
-  }
+  },
 });
 
 export const { dispatchDeleteLogin } = userProcess.actions;
-

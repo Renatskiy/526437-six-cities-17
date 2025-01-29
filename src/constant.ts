@@ -58,3 +58,6 @@ export const Rating = {
   InitState: 0,
   Multiplier: 20,
 };
+
+export const UPLOAD_URL = 'https://16.design.htmlacademy.pro';
+export const TIME_OUT = 5000;
